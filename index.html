@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Controll Dashboard</title>
+  <script src="https://kit.fontawesome.com/685df27141.js" crossorigin="anonymous"></script>
+  <style>
+    body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 100%;
+      margin-top: 80px;
+    }
+    .mainContainor {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-top: 50px;
+    }
+    h6 {
+      margin: 0px;
+      padding: 0px;
+    }
+    h1 {
+      margin-bottom: 0px;
+    }
+    .statusContainor {
+      display: flex;
+      align-items: center;
+      margin-bottom: 50px;
+    }
+    .statusContainor .componentContainor {
+      margin: 20px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+    }
+    .controlContainor {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+    }
+    .controlContainor .componentContainor {
+      display: flex;
+      justify-content: flex-start;
+      align-items: center;
+      margin-bottom: 35px;
+    }
+    .controlContainor .componentContainor i {
+      margin-right: 20px;
+      color: #000000;
+    }
+    .label {
+      display: flex;
+      align-items: center;
+      width: 200px;
+    }
+    .statusChange {
+      display: flex;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    .statusChange input {
+      margin-right: 10px;
+      margin-left: 5px;
+    }
+    .inputContainor {
+      display: none;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    .inputContainor input {
+      margin-right: 10px;
+      margin-left: 5px;
+    }
+    button {
+      margin-left: 10px;
+    }
+    .statusChange input{
+      margin-right: 20px;
+    }
+    @media (max-width: 480px) {
+      body {
+        margin-top: 20px;
+      }
+      h1 {
+        font-size: 1.5em;
+      }
+      .statusContainor .componentContainor {
+        width: 65px;
+        margin: 5px;
+      }
+      .statusContainor {
+        margin-bottom: 0px;
+      }
+      .controlContainor{
+        margin-left: 20px;
+        margin-right: 20px;
+        margin-top: 0px;
+      }
+      .controlContainor .componentContainor{
+        flex-direction: column;
+      }
+      .label {
+        width: 150px;
+      }
+      .inputContainor {
+        flex-direction: column;
+        align-items: flex-start;
+        margin-left: 20px;
+      }
+      .inputContainor input {
+        margin-top: 5px;
+        margin-bottom: 5px;
+        margin-left: 0px;
+      }
+      button {
+        margin-left: 0px;
+        margin-top: 10px;
+      }
+      .statusName{
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <h1>Controll Dashboard</h1>
+  <h6>created by Kavinda Lakshan Jayarathna</h6>
+  <div class="mainContainor">
+    <div class="statusContainor">
+      <div class="componentContainor">
+        <i class="fas fa-thermometer-half"></i>
+        <p class="status" id="tempStatus">27 C&deg;</p>
+        <p class="statusName">Temparature</p>
+      </div>
+      <div class="componentContainor">
+        <i class="fas fa-tint"></i>
+        <p class="status" id="humidityStatus">80%</p>
+        <p class="statusName">Humidity</p>
+      </div>
+      <div class="componentContainor">
+        <i class="fas fa-fan"></i>
+        <p class="status" id="fanStatus">off</p>
+        <p class="statusName">Fan</p>
+      </div>
+      <div class="componentContainor">
+        <i class="fa-solid fa-shower"></i>
+        <p class="status" id="mistStatus">on</p>
+        <p class="statusName">Mist Maker</p>
+      </div>
+      <div class="componentContainor">
+        <i class="fa-solid fa-lightbulb"></i>
+        <p class="status" id="lightStatus">off</p>
+        <p class="statusName">Light</p>
+      </div>
+    </div>
+    <div class="controlContainor">
+      <div class="componentContainor">
+        <div class="label">
+          <i class="fas fa-fan"></i>
+          <p>Fan</p>
+        </div>
+        <div class="rightContainor">
+          <div class="statusChange">
+            on
+            <input type="radio" name="fan" id="fanOn">
+            automatically
+            <input type="radio" name="fan" id="fanAuto">
+            off
+            <input type="radio" name="fan" id="fanOff">
+          </div>
+          <div class="inputContainor" id="fanInput">
+            Low temparature level
+            <input type="text">
+            High temparature level
+            <input type="text">
+            <button>Submit</button>
+          </div>
+        </div>
+      </div>
+      <div class="componentContainor">
+        <div class="label">
+          <i class="fa-solid fa-shower"></i>
+          <p>Mist Maker</p>
+        </div>
+        <div class="rightContainor">
+          <div class="statusChange">
+            on
+            <input type="radio" name="mistMaker" id="mistMakerOn">
+            automatically
+            <input type="radio" name="mistMaker" id="mistMakerAuto">
+            off
+            <input type="radio" name="mistMaker" id="mistMakerOff">
+          </div>
+          <div class="inputContainor" id="mistMakerInput">
+            Low humidity level
+            <input type="text">
+            High humidity level
+            <input type="text">
+            <button>Submit</button>
+          </div>
+        </div>
+      </div>
+      <div class="componentContainor">
+        <div class="label">
+          <i class="fa-solid fa-lightbulb"></i>
+          <p>Light</p>
+        </div>
+        <div class="rightContainor">
+          <div class="statusChange">
+            on
+            <input type="radio" name="light" id="lightOn">
+            automatically
+            <input type="radio" name="light" id="lightAuto">
+            off
+            <input type="radio" name="light" id="lightOff">
+          </div>
+          <div class="inputContainor" id="lightInput">
+            Light on time
+            <input type="text">
+            Light off time
+            <input type="text">
+            <button>Submit</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script>
+    document.getElementById("fanAuto").addEventListener('change', function (e) {
+      if(this.checked) {
+        console.log("fan auto selected");
+        document.getElementById('fanInput').style.display = 'flex';
+      }else{
+        document.getElementById('fanInput').style.display = 'none';
+      }
+    });
+    document.getElementById("fanOn").addEventListener('change', function (e) {
+      if (this.checked) {
+        document.getElementById('fanInput').style.display = 'none';
+      }
+    });
+
+    document.getElementById("fanOff").addEventListener('change', function (e) {
+      if (this.checked) {
+        document.getElementById('fanInput').style.display = 'none';
+      }
+    });
+    document.getElementById("mistMakerAuto").addEventListener('change', function (e) {
+      if (this.checked) {
+        document.getElementById('mistMakerInput').style.display = 'flex';
+      }
+    });
+
+    document.getElementById("mistMakerOn").addEventListener('change', function (e) {
+      if (this.checked) {
+        document.getElementById('mistMakerInput').style.display = 'none';
+      }
+    });
+
+    document.getElementById("mistMakerOff").addEventListener('change', function (e) {
+      if (this.checked) {
+        document.getElementById('mistMakerInput').style.display = 'none';
+      }
+    });
+
+    document.getElementById("lightAuto").addEventListener('change', function (e) {
+      if (this.checked) {
+        document.getElementById('lightInput').style.display = 'flex';
+      }
+    });
+
+    document.getElementById("lightOn").addEventListener('change', function (e) {
+      if (this.checked) {
+        document.getElementById('lightInput').style.display = 'none';
+      }
+    });
+
+    document.getElementById("lightOff").addEventListener('change', function (e) {
+      if (this.checked) {
+        document.getElementById('lightInput').style.display = 'none';
+      }
+    });
+  </script>
+</body>
+</html>
