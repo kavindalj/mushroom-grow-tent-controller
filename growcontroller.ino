@@ -1,3 +1,31 @@
+#include <WiFi.h>
+#include <ESPmDNS.h>
+#include <ESPAsyncWebServer.h>
+#include <WebSocketsServer.h>
+#include <ArduinoJson.h>
+#include <DHT.h> //DHT and Adafruit Sensor library(https://github.com/adafruit/Adafruit_Sensor)
+#include <Ticker.h> //https://github.com/sstaub/Ticker
+
+#include "config.h" // import network credentials
+
+#define DHTPIN 27
+#define FAN 13
+#define MISTMAKER 12
+#define LIGHT 14
+
+#define DHTTYPE    DHT11
+DHT dht(DHTPIN, DHTTYPE);
+
+// network credentials
+// const char* ssid = "SSID";
+// const char* password = "PASSWORD";
+
+void send_sensor();
+
+Ticker timer;
+
+char webpage[] PROGMEM = R"=====(
+
 <!DOCTYPE html>
 <html>
   <head>
@@ -368,3 +396,130 @@
     </div>  
   </body>
 </html>
+
+
+)=====";
+
+
+AsyncWebServer server(80); // server port 80
+WebSocketsServer websockets(81);
+
+void notFound(AsyncWebServerRequest *request)
+{
+  request->send(404, "text/plain", "Page Not found");
+}
+
+void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length) {
+
+  switch (type) 
+  {
+    case WStype_DISCONNECTED:
+      Serial.printf("[%u] Disconnected!\n", num);
+      break;
+    case WStype_CONNECTED: {
+        IPAddress ip = websockets.remoteIP(num);
+        Serial.printf("[%u] Connected from %d.%d.%d.%d url: %s\n", num, ip[0], ip[1], ip[2], ip[3], payload);
+      }
+      break;
+    case WStype_TEXT:
+      Serial.printf("[%u] get Text: %s\n", num, payload);
+      String message = String((char*)( payload));
+      Serial.println(message);
+
+      
+      DynamicJsonDocument doc(200);
+      // deserialize the data
+      DeserializationError error = deserializeJson(doc, message);
+      // parse the parameters we expect to receive (TO-DO: error handling)
+      // Test if parsing succeeds.
+      if (error) {
+        Serial.print("deserializeJson() failed: ");
+        Serial.println(error.c_str());
+        return;
+      }
+
+      int FAN_status = doc["fanControl"];
+      int MISTMAKER_status = doc["mistMakerControl"];
+      int LIGHT_status = doc["lightControl"];
+      digitalWrite(FAN,FAN_status);
+      digitalWrite(MISTMAKER,MISTMAKER_status);
+      digitalWrite(LIGHT,LIGHT_status);
+  }
+}
+
+void setup(void)
+{
+  Serial.begin(115200);
+
+  pinMode(MISTMAKER,OUTPUT);
+  pinMode(FAN,OUTPUT);
+  pinMode(LIGHT,OUTPUT);
+
+  dht.begin();
+  
+  // Connect to Wi-Fi
+  WiFi.begin(ssid, password);
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(1000);
+    Serial.println("Connecting to WiFi..");
+  }
+
+  // Print ESP Local IP Address
+  Serial.println(WiFi.localIP());
+
+  server.on("/", [](AsyncWebServerRequest * request)
+  { 
+    request->send_P(200, "text/html", webpage);
+  });
+
+  server.onNotFound(notFound);
+
+  server.begin();  // start webserver
+  websockets.begin();
+  websockets.onEvent(webSocketEvent);
+  timer.attach(2,send_sensor);
+
+}
+
+
+void loop(void)
+{
+ websockets.loop();
+}
+
+void send_sensor()
+{
+  // Read humidity
+  float h = dht.readHumidity();
+  // Read temperature
+  float t = dht.readTemperature();
+
+  // Read pins
+  int fan_state = digitalRead(FAN);
+  int mistMaker_state = digitalRead(MISTMAKER);
+  int light_state = digitalRead(LIGHT);
+  
+  if (isnan(h) || isnan(t) ) {
+    Serial.println(F("Failed to read from DHT sensor!"));
+    return;
+  }
+    if (isnan(fan_state) || isnan(mistMaker_state) || isnan(light_state) ) {
+    Serial.println(F("Failed to read from pins!"));
+    return;
+  }
+
+  // Make data into json format ==> JSON_Data = {"temp":t,"hum":h}
+  String JSON_Data = "{\"temp\":";
+         JSON_Data += t;
+         JSON_Data += ",\"hum\":";
+         JSON_Data += h;
+         JSON_Data += ",\"fan\":";
+         JSON_Data += fan_state;
+         JSON_Data += ",\"mist\":";
+         JSON_Data += mistMaker_state;
+         JSON_Data += ",\"light\":";
+         JSON_Data += light_state;
+         JSON_Data += "}";
+   Serial.println(JSON_Data);     
+  websockets.broadcastTXT(JSON_Data);
+}
