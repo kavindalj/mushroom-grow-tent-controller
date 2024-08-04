@@ -3,6 +3,7 @@
 #include <ESPAsyncWebServer.h>
 #include <WebSocketsServer.h>
 #include <ArduinoJson.h>
+#include <EEPROM.h>
 #include <DHT.h> //DHT and Adafruit Sensor library(https://github.com/adafruit/Adafruit_Sensor)
 #include <Ticker.h> //https://github.com/sstaub/Ticker
 
@@ -168,6 +169,9 @@ char webpage[] PROGMEM = R"=====(
     var fan_data = 0;
     var mistMaker_data = 0;
     var light_data = 0;
+    var fanSelect_data = 0;
+    var mistMakerSelect_data = 0;
+    var lightSelect_data = 0;
 
     connection.onmessage = function(event){
 
@@ -180,6 +184,10 @@ char webpage[] PROGMEM = R"=====(
       fan_data = data.fan;   // state on or off now
       mistMaker_data = data.mist;   // state on or off now
       light_data = data.light;   // state on or off now
+
+      fanSelect_data = data.fanSelect;
+      mistMakerSelect_data = data.mistMakerSelect;
+      lightSelect_data = data.lightSelect;
 
       var fanSt;
       var mistSt;
@@ -202,6 +210,49 @@ char webpage[] PROGMEM = R"=====(
       }
       if (light_data == 1){
         lightSt = "on";
+      }
+
+      switch(fanSelect_data) {
+        case 0:
+          document.getElementById('fanOff').checked = true;
+          document.getElementById('fanInput').style.display = 'none';
+          break;
+        case 1:
+          document.getElementById('fanOn').checked = true;
+          document.getElementById('fanInput').style.display = 'none';
+          break;
+        case 2:
+          document.getElementById('fanAuto').checked = true;
+          document.getElementById('fanInput').style.display = 'flex';
+          break;
+      }
+      switch(mistMakerSelect_data) {
+        case 0:
+          document.getElementById('mistMakerOff').checked = true;
+          document.getElementById('mistMakerInput').style.display = 'none';
+          break;
+        case 1:
+          document.getElementById('mistMakerOn').checked = true;
+          document.getElementById('mistMakerInput').style.display = 'none';
+          break;
+        case 2:
+          document.getElementById('mistMakerAuto').checked = true;
+          document.getElementById('mistMakerInput').style.display = 'flex';
+          break;
+      }
+      switch(lightSelect_data) {
+        case 0:
+          document.getElementById('lightOff').checked = true;
+          document.getElementById('lightInput').style.display = 'none';
+          break;
+        case 1:
+          document.getElementById('lightOn').checked = true;
+          document.getElementById('lightInput').style.display = 'none';
+          break;
+        case 2:
+          document.getElementById('lightAuto').checked = true;
+          document.getElementById('lightInput').style.display = 'flex';
+          break;
       }
 
       document.getElementById("temp_value").innerHTML = temp_data;
@@ -235,8 +286,10 @@ char webpage[] PROGMEM = R"=====(
 
     function fan_auto()
     {
+      fanControlStatus = 2;
       console.log("FAN auto");
       document.getElementById('fanInput').style.display = 'flex';
+      send_data();
     }
 
     function mist_on()
@@ -257,8 +310,10 @@ char webpage[] PROGMEM = R"=====(
 
     function mist_auto()
     {
+      mistMakerControlStatus = 2;
       console.log("MISTMAKER auto");
       document.getElementById('mistMakerInput').style.display = 'flex';
+      send_data();
     }
 
     function light_on()
@@ -279,8 +334,10 @@ char webpage[] PROGMEM = R"=====(
 
     function light_auto()
     {
+      lightControlStatus = 2;
       console.log("LIGHT auto");
       document.getElementById('lightInput').style.display = 'flex';
+      send_data();
     }
 
     function send_data()
@@ -423,7 +480,7 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length
       break;
     case WStype_TEXT:
       Serial.printf("[%u] get Text: %s\n", num, payload);
-      String message = String((char*)( payload));
+      String message = String((char*)( payload));    // Get json data
       Serial.println(message);
 
       
@@ -441,9 +498,23 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length
       int FAN_status = doc["fanControl"];
       int MISTMAKER_status = doc["mistMakerControl"];
       int LIGHT_status = doc["lightControl"];
-      digitalWrite(FAN,FAN_status);
-      digitalWrite(MISTMAKER,MISTMAKER_status);
-      digitalWrite(LIGHT,LIGHT_status);
+
+      if (FAN_status != 2){
+        digitalWrite(FAN,FAN_status);
+      }
+      if (MISTMAKER_status != 2){
+        digitalWrite(MISTMAKER,MISTMAKER_status);
+      }
+      if (LIGHT_status != 2){
+        digitalWrite(LIGHT,LIGHT_status);
+      }
+
+      Serial.println("write to eprom");
+      EEPROM.write(0, FAN_status);
+      EEPROM.write(1, MISTMAKER_status);
+      EEPROM.write(2, LIGHT_status);
+
+      EEPROM.commit();
   }
 }
 
@@ -456,6 +527,7 @@ void setup(void)
   pinMode(LIGHT,OUTPUT);
 
   dht.begin();
+  EEPROM.begin(512); //Initialasing EEPROM
   
   // Connect to Wi-Fi
   WiFi.begin(ssid, password);
@@ -498,6 +570,11 @@ void send_sensor()
   int fan_state = digitalRead(FAN);
   int mistMaker_state = digitalRead(MISTMAKER);
   int light_state = digitalRead(LIGHT);
+
+  // Read EEProm for selcted state
+  int fan_selected = EEPROM.read(0);
+  int mistMaker_selected = EEPROM.read(1);
+  int light_selected = EEPROM.read(2);
   
   if (isnan(h) || isnan(t) ) {
     Serial.println(F("Failed to read from DHT sensor!"));
@@ -519,6 +596,12 @@ void send_sensor()
          JSON_Data += mistMaker_state;
          JSON_Data += ",\"light\":";
          JSON_Data += light_state;
+         JSON_Data += ",\"fanSelect\":";
+         JSON_Data += fan_selected;
+         JSON_Data += ",\"mistMakerSelect\":";
+         JSON_Data += mistMaker_selected;
+         JSON_Data += ",\"lightSelect\":";
+         JSON_Data += light_selected;
          JSON_Data += "}";
    Serial.println(JSON_Data);     
   websockets.broadcastTXT(JSON_Data);
