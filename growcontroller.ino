@@ -22,8 +22,10 @@ DHT dht(DHTPIN, DHTTYPE);
 // const char* password = "PASSWORD";
 
 void send_sensor();
+void auto_loop();
 
 Ticker timer;
+Ticker looptimer;
 
 char webpage[] PROGMEM = R"=====(
 
@@ -161,17 +163,26 @@ char webpage[] PROGMEM = R"=====(
 
     var connection = new WebSocket('ws://'+location.hostname+':81/');
 
-    var fanControlStatus = 0;   // selected state
-    var mistMakerControlStatus = 0;   // selected state
-    var lightControlStatus = 0;   // selected state
-    var temp_data = 0;
+    var fanControlStatus = 0;   // store selected state from web
+    var mistMakerControlStatus = 0;
+    var lightControlStatus = 0;
+    
+    var temp_data = 0;   // store read data from sensor
     var hum_data = 0;
-    var fan_data = 0;
+    var fan_data = 0;   // store pin read state ==> on or off now
     var mistMaker_data = 0;
     var light_data = 0;
-    var fanSelect_data = 0;
+    
+    var fanSelect_data = 0;   // store read state in EEPROM
     var mistMakerSelect_data = 0;
     var lightSelect_data = 0;
+
+    var lowTempLev = 0;   // store input data
+    var highTempLev = 0;
+    var lowHumLev = 0;
+    var highHumLev = 0;
+    var lightOnTime = 0;
+    var lightOffTime = 0;
 
     connection.onmessage = function(event){
 
@@ -181,13 +192,20 @@ char webpage[] PROGMEM = R"=====(
 
       temp_data = data.temp;
       hum_data = data.hum;
-      fan_data = data.fan;   // state on or off now
-      mistMaker_data = data.mist;   // state on or off now
-      light_data = data.light;   // state on or off now
+      fan_data = data.fan;
+      mistMaker_data = data.mist;
+      light_data = data.light;
 
       fanSelect_data = data.fanSelect;
       mistMakerSelect_data = data.mistMakerSelect;
       lightSelect_data = data.lightSelect;
+
+      lowTempLev = data.lowTemp_level;
+      highTempLev = data.highTemp_level;
+      lowHumLev = data.lowHum_level;
+      highHumLev = data.highHum_level;
+      lightOnTime = data.lightOn_time;
+      lightOffTime = data.lightOff_time;
 
       var fanSt;
       var mistSt;
@@ -212,6 +230,7 @@ char webpage[] PROGMEM = R"=====(
         lightSt = "on";
       }
 
+      // for auto check check boxes with saved state in EEPROM
       switch(fanSelect_data) {
         case 0:
           document.getElementById('fanOff').checked = true;
@@ -255,19 +274,23 @@ char webpage[] PROGMEM = R"=====(
           break;
       }
 
+      // update status show in web page
       document.getElementById("temp_value").innerHTML = temp_data;
       document.getElementById("hum_value").innerHTML = hum_data;
       document.getElementById("fan_state").innerHTML = fanSt;
       document.getElementById("mistMaker_state").innerHTML = mistSt;
       document.getElementById("light_state").innerHTML = lightSt;
+
+      // change placeholder text
+      document.getElementById('LTL').placeholder = lowTempLev;
+      document.getElementById('HTL').placeholder = highTempLev;
+      document.getElementById('LHL').placeholder = lowHumLev;
+      document.getElementById('HHL').placeholder = highHumLev;
+      document.getElementById('LONT').placeholder = lightOnTime;
+      document.getElementById('LOFFT').placeholder = lightOffTime;
     }
 
-    window.onload = function() {
-      document.getElementById('fanInput').style.display = 'none';
-      document.getElementById('mistMakerInput').style.display = 'none';
-      document.getElementById('lightInput').style.display = 'none';
-    }
-
+    // click functions
     function fan_on()
     {
       fanControlStatus = 1; 
@@ -340,9 +363,35 @@ char webpage[] PROGMEM = R"=====(
       send_data();
     }
 
+    // get text user input
+    function submit(){
+      // get values only input isnt empty
+      if(document.getElementById("LTL").value){
+        lowTempLev = document.getElementById("LTL").value;
+      }
+      if(document.getElementById("HTL").value){
+        highTempLev = document.getElementById("HTL").value;
+      }
+      if(document.getElementById("LHL").value){
+        lowHumLev = document.getElementById("LHL").value;
+      }
+      if(document.getElementById("HHL").value){
+        highHumLev = document.getElementById("HHL").value;
+      }
+      if(document.getElementById("LONT").value){
+        lightOnTime = document.getElementById("LONT").value;
+      }
+      if(document.getElementById("LOFFT").value){
+        lightOffTime = document.getElementById("LOFFT").value;
+      }
+
+      console.log(lowTempLev,highTempLev,lowHumLev,highHumLev,lightOnTime,lightOffTime);
+      send_data();
+    }
+
     function send_data()
     {
-      var full_data = '{"fanControl" :'+fanControlStatus+',"mistMakerControl":'+mistMakerControlStatus+',"lightControl":'+lightControlStatus+'}';
+      var full_data = '{"fanControl" :'+fanControlStatus+',"mistMakerControl":'+mistMakerControlStatus+',"lightControl":'+lightControlStatus+',"ltl":'+lowTempLev+',"htl":'+highTempLev+',"lhl":'+lowHumLev+',"hhl":'+highHumLev+',"lont":'+lightOnTime+',"lofft":'+lightOffTime+'}';
       console.log(full_data);
       connection.send(full_data);
     }
@@ -396,10 +445,10 @@ char webpage[] PROGMEM = R"=====(
             </div>
             <div class="inputContainor" id="fanInput">
               Low temparature level
-              <input type="text">
+              <input type="text" id="LTL">
               High temparature level
-              <input type="text">
-              <button>Submit</button>
+              <input type="text" id="HTL">
+              <button onclick="submit()">Submit</button>
             </div>
           </div>
         </div>
@@ -419,10 +468,10 @@ char webpage[] PROGMEM = R"=====(
             </div>
             <div class="inputContainor" id="mistMakerInput">
               Low humidity level
-              <input type="text">
+              <input type="text" id="LHL">
               High humidity level
-              <input type="text">
-              <button>Submit</button>
+              <input type="text" id="HHL">
+              <button onclick="submit()">Submit</button>
             </div>
           </div>
         </div>
@@ -442,10 +491,10 @@ char webpage[] PROGMEM = R"=====(
             </div>
             <div class="inputContainor" id="lightInput">
               Light on time
-              <input type="text">
+              <input type="text" id="LONT">
               Light off time
-              <input type="text">
-              <button>Submit</button>
+              <input type="text" id="LOFFT">
+              <button onclick="submit()">Submit</button>
             </div>
           </div>
         </div>
@@ -499,17 +548,20 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length
       int MISTMAKER_status = doc["mistMakerControl"];
       int LIGHT_status = doc["lightControl"];
 
-      if (FAN_status != 2){
-        digitalWrite(FAN,FAN_status);
+      if (FAN_status == 2){
+        EEPROM.write(3, doc["ltl"]);
+        EEPROM.write(4, doc["htl"]);
       }
-      if (MISTMAKER_status != 2){
-        digitalWrite(MISTMAKER,MISTMAKER_status);
+      if (MISTMAKER_status == 2){
+        EEPROM.write(5, doc["lhl"]);
+        EEPROM.write(6, doc["hhl"]);
       }
-      if (LIGHT_status != 2){
-        digitalWrite(LIGHT,LIGHT_status);
+      if (LIGHT_status == 2){
+        EEPROM.write(7, doc["lont"]);
+        EEPROM.write(8, doc["lofft"]);
       }
 
-      Serial.println("write to eprom");
+      Serial.println("write to EEPROM");
       EEPROM.write(0, FAN_status);
       EEPROM.write(1, MISTMAKER_status);
       EEPROM.write(2, LIGHT_status);
@@ -550,6 +602,7 @@ void setup(void)
   websockets.begin();
   websockets.onEvent(webSocketEvent);
   timer.attach(2,send_sensor);
+  looptimer.attach(1,auto_loop);
 
 }
 
@@ -571,10 +624,17 @@ void send_sensor()
   int mistMaker_state = digitalRead(MISTMAKER);
   int light_state = digitalRead(LIGHT);
 
-  // Read EEProm for selcted state
+  // Read EEProm for loard selcted state and values
   int fan_selected = EEPROM.read(0);
   int mistMaker_selected = EEPROM.read(1);
   int light_selected = EEPROM.read(2);
+
+  int lowTemp_level = EEPROM.read(3);
+  int highTemp_level = EEPROM.read(4);
+  int lowHum_level = EEPROM.read(5);
+  int highHum_level = EEPROM.read(6);
+  int lightOn_time = EEPROM.read(7);
+  int lightOff_time = EEPROM.read(8);
   
   if (isnan(h) || isnan(t) ) {
     Serial.println(F("Failed to read from DHT sensor!"));
@@ -602,7 +662,64 @@ void send_sensor()
          JSON_Data += mistMaker_selected;
          JSON_Data += ",\"lightSelect\":";
          JSON_Data += light_selected;
+         JSON_Data += ",\"lowTemp_level\":";
+         JSON_Data += lowTemp_level;
+         JSON_Data += ",\"highTemp_level\":";
+         JSON_Data += highTemp_level;
+         JSON_Data += ",\"lowHum_level\":";
+         JSON_Data += lowHum_level;
+         JSON_Data += ",\"highHum_level\":";
+         JSON_Data += highHum_level;
+         JSON_Data += ",\"lightOn_time\":";
+         JSON_Data += lightOn_time;
+         JSON_Data += ",\"lightOff_time\":";
+         JSON_Data += lightOff_time;
          JSON_Data += "}";
    Serial.println(JSON_Data);     
   websockets.broadcastTXT(JSON_Data);
+}
+
+void auto_loop(){
+  // Read EEProm for loard selcted state and values
+  int fan_selected = EEPROM.read(0);
+  int mistMaker_selected = EEPROM.read(1);
+  int light_selected = EEPROM.read(2);
+
+  
+  int lowHum_level = EEPROM.read(5);
+  int highHum_level = EEPROM.read(6);
+  int lightOn_time = EEPROM.read(7);
+  int lightOff_time = EEPROM.read(8);
+
+  if (fan_selected != 2){
+    digitalWrite(FAN,fan_selected);
+  }else{
+    int lowTemp_level = EEPROM.read(3);
+    int highTemp_level = EEPROM.read(4);
+    float t = dht.readTemperature();
+    if ( lowTemp_level >= t ){
+      digitalWrite(FAN,0);
+    }
+    if ( highTemp_level <= t ){
+      digitalWrite(FAN,1);
+    }
+  }
+
+  if (mistMaker_selected != 2){
+    digitalWrite(MISTMAKER,mistMaker_selected);
+  }else{
+    int lowHum_level = EEPROM.read(5);
+    int highHum_level = EEPROM.read(6);
+    float h = dht.readHumidity();
+    if ( lowHum_level >= h ){
+      digitalWrite(MISTMAKER,1);
+    }
+    if ( highHum_level <= h ){
+      digitalWrite(MISTMAKER,0);
+    }
+  }
+
+  if (light_selected != 2){
+    digitalWrite(LIGHT,light_selected);
+  }
 }
