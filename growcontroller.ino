@@ -6,6 +6,7 @@
 #include <EEPROM.h>
 #include <DHT.h> //DHT and Adafruit Sensor library(https://github.com/adafruit/Adafruit_Sensor)
 #include <Ticker.h> //https://github.com/sstaub/Ticker
+#include "time.h"
 
 #include "config.h" // import network credentials
 
@@ -16,6 +17,10 @@
 
 #define DHTTYPE    DHT11
 DHT dht(DHTPIN, DHTTYPE);
+
+const char* ntpServer = "pool.ntp.org";
+const long  gmtOffset_sec = 16200;
+const int   daylightOffset_sec = 3600;
 
 // network credentials
 // const char* ssid = "SSID";
@@ -591,6 +596,8 @@ void setup(void)
   // Print ESP Local IP Address
   Serial.println(WiFi.localIP());
 
+  configTime(gmtOffset_sec, daylightOffset_sec, ntpServer);
+
   server.on("/", [](AsyncWebServerRequest * request)
   { 
     request->send_P(200, "text/html", webpage);
@@ -685,12 +692,6 @@ void auto_loop(){
   int mistMaker_selected = EEPROM.read(1);
   int light_selected = EEPROM.read(2);
 
-  
-  int lowHum_level = EEPROM.read(5);
-  int highHum_level = EEPROM.read(6);
-  int lightOn_time = EEPROM.read(7);
-  int lightOff_time = EEPROM.read(8);
-
   if (fan_selected != 2){
     digitalWrite(FAN,fan_selected);
   }else{
@@ -721,5 +722,22 @@ void auto_loop(){
 
   if (light_selected != 2){
     digitalWrite(LIGHT,light_selected);
+  }else{
+    struct tm timeinfo;
+    if(!getLocalTime(&timeinfo)){
+      Serial.println("Failed to obtain time");
+      return;
+    }
+
+    int lightOn_time = EEPROM.read(7);
+    int lightOff_time = EEPROM.read(8);
+
+    Serial.println(&timeinfo, "%A, %B %d %Y %H:%M:%S");
+    int currentHour = timeinfo.tm_hour;
+    if (lightOn_time <= currentHour && lightOff_time > currentHour){
+      digitalWrite(LIGHT,1);
+    }else{
+      digitalWrite(LIGHT,0);
+    }
   }
 }
