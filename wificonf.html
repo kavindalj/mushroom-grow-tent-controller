@@ -18,7 +18,7 @@
             border-radius: 8px;
             background-color: #f9f9f9;
         }
-        form {
+        .form {
             display: inline-block;
             text-align: left;
             width: 100%;
@@ -56,20 +56,44 @@
         }
     </style>
 </head>
+<script>
+    var connection = new WebSocket('ws://'+location.hostname+':81/');
+
+    var HOSTNAME = growcontroller
+
+    function submit() {
+        SSID = document.getElementById("ssid").value;
+        PASSWD = document.getElementById("password").value;
+        HOSTNAME = document.getElementById("HostName").value;
+        send_data();
+    }
+    function send_data() {
+        var wifi_data = JSON.stringify({
+            ssid: SSID,
+            password: PASSWD,
+            hostname: HOSTNAME
+        });
+        connection.send(wifi_data);
+    }
+</script>
 <body>
     <div class="container">
         <h1>Enter Your WiFi Credentials</h1>
-        <form>
+        <div class="form">
             <div class="form-group">
-                <label for="ssid">WiFi</label>
-                <input type="text" id="ssid" name="ssid">
+                <label for="ssid">WiFi SSID</label>
+                <input type="text" id="ssid" name="ssid" length=32 placeholder="Home_WiFi">
             </div>
             <div class="form-group">
                 <label for="password">Password</label>
-                <input type="text" id="password" name="password">
+                <input type="text" id="password" name="password" length=64 placeholder="********">
             </div>
-            <input type="submit" value="Submit">
-        </form>
+            <div class="form-group">
+                <label for="HostName">Host Name</label>
+                <input type="text" id="HostName" name="HostName" length=32 placeholder="growcontroller">
+            </div>
+            <input type="submit" value="Submit" onclick="submit()">
+        </div>
     </div>
 </body>
 </html>

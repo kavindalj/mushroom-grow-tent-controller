@@ -533,7 +533,7 @@ char wifiwebpage[] PROGMEM = R"=====(
             border-radius: 8px;
             background-color: #f9f9f9;
         }
-        form {
+        .form {
             display: inline-block;
             text-align: left;
             width: 100%;
@@ -571,23 +571,48 @@ char wifiwebpage[] PROGMEM = R"=====(
         }
     </style>
 </head>
+<script>
+    var connection = new WebSocket('ws://'+location.hostname+':81/');
+
+    var HOSTNAME = growcontroller
+
+    function submit() {
+        SSID = document.getElementById("ssid").value;
+        PASSWD = document.getElementById("password").value;
+        HOSTNAME = document.getElementById("HostName").value;
+        send_data();
+    }
+    function send_data() {
+        var wifi_data = JSON.stringify({
+            ssid: SSID,
+            password: PASSWD,
+            hostname: HOSTNAME
+        });
+        connection.send(wifi_data);
+    }
+</script>
 <body>
     <div class="container">
         <h1>Enter Your WiFi Credentials</h1>
-        <form>
+        <div class="form">
             <div class="form-group">
-                <label for="ssid">WiFi</label>
-                <input type="text" id="ssid" name="ssid">
+                <label for="ssid">WiFi SSID</label>
+                <input type="text" id="ssid" name="ssid" length=32 placeholder="Home_WiFi">
             </div>
             <div class="form-group">
                 <label for="password">Password</label>
-                <input type="text" id="password" name="password">
+                <input type="text" id="password" name="password" length=64 placeholder="********">
             </div>
-            <input type="submit" value="Submit">
-        </form>
+            <div class="form-group">
+                <label for="HostName">Host Name</label>
+                <input type="text" id="HostName" name="HostName" length=32 placeholder="growcontroller">
+            </div>
+            <input type="submit" value="Submit" onclick="submit()">
+        </div>
     </div>
 </body>
 </html>
+
 
 )=====";
 
@@ -645,6 +670,59 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length
         EEPROM.write(8, doc["lofft"]);
       }
 
+      String qsid;
+      String qpass;
+      String qhost;
+      if (doc["password"].as<String>() != "null") {
+        qpass = doc["password"].as<String>();
+      }
+      if (doc["ssid"].as<String>() != "null") {
+        qsid = doc["ssid"].as<String>();
+      }
+      if (doc["hostname"].as<String>() != "null") {
+        qhost = doc["hostname"].as<String>();
+      }
+      Serial.println(qsid);
+      Serial.println(qpass);
+      Serial.println(qhost);
+
+      if (qsid.length() > 0 && qpass.length() > 0) {
+        Serial.println("clearing eeprom");
+        for (int i = 10; i < 138; ++i) {
+          EEPROM.write(i, 0);
+        }
+        Serial.println(qsid);
+        Serial.println("");
+        Serial.println(qpass);
+        Serial.println("");
+        Serial.println(qhost);
+        Serial.println("");
+
+        Serial.println("writing eeprom ssid:");
+        for (int i = 0; i < qsid.length(); ++i)
+        {
+          EEPROM.write(10 + i, qsid[i]);
+          Serial.print("Wrote: ");
+          Serial.println(qsid[i]);
+        }
+        Serial.println("writing eeprom pass:");
+        for (int i = 0; i < qpass.length(); ++i)
+        {
+          EEPROM.write(42 + i, qpass[i]);
+          Serial.print("Wrote: ");
+          Serial.println(qpass[i]);
+        }
+      }
+      if ( qhost.length() > 0 ){
+        Serial.println("writing eeprom hostname:");
+        for (int i = 0; i < qhost.length(); ++i)
+        {
+          EEPROM.write(106 + i, qhost[i]);
+          Serial.print("Wrote: ");
+          Serial.println(qhost[i]);
+        }
+      }
+
       Serial.println("write to EEPROM");
       EEPROM.write(0, FAN_status);
       EEPROM.write(1, MISTMAKER_status);
@@ -674,6 +752,13 @@ void setup(void)
 
   // Print ESP Local IP Address
   Serial.println(WiFi.localIP());
+
+  // Initialize mDNS
+  if (!MDNS.begin("esp")) { // hostname
+    Serial.println("Error starting mDNS");
+    return;
+  }
+  Serial.println("mDNS started");
 
   configTime(gmtOffset_sec, daylightOffset_sec, ntpServer);
 
