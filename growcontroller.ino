@@ -511,6 +511,85 @@ char webpage[] PROGMEM = R"=====(
 
 )=====";
 
+char wifiwebpage[] PROGMEM = R"=====(
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>WiFi Config</title>
+    <style>
+        html, body {
+            height: 100%;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: Arial, sans-serif;
+        }
+        .container {
+            text-align: center;
+            border: 1px solid #ccc;
+            padding: 20px;
+            border-radius: 8px;
+            background-color: #f9f9f9;
+        }
+        form {
+            display: inline-block;
+            text-align: left;
+            width: 100%;
+            max-width: 400px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        input[type="text"] {
+            width: calc(100% - 16px);
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        input[type="submit"] {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            background-color: #007bff;
+            color: white;
+            font-size: 14px;
+            cursor: pointer;
+            display: block;
+            width: 150px;
+            margin: 0 auto;
+            box-sizing: border-box;
+        }
+        input[type="submit"]:hover {
+            background-color: #0056b3;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Enter Your WiFi Credentials</h1>
+        <form>
+            <div class="form-group">
+                <label for="ssid">WiFi</label>
+                <input type="text" id="ssid" name="ssid">
+            </div>
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="text" id="password" name="password">
+            </div>
+            <input type="submit" value="Submit">
+        </form>
+    </div>
+</body>
+</html>
+
+)=====";
 
 AsyncWebServer server(80); // server port 80
 WebSocketsServer websockets(81);
@@ -601,6 +680,11 @@ void setup(void)
   server.on("/", [](AsyncWebServerRequest * request)
   { 
     request->send_P(200, "text/html", webpage);
+  });
+
+    server.on("/wificonfig", [](AsyncWebServerRequest * request)
+  { 
+    request->send_P(200, "text/html", wifiwebpage);
   });
 
   server.onNotFound(notFound);
