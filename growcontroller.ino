@@ -28,6 +28,10 @@ const int   daylightOffset_sec = 3600;
 
 void send_sensor();
 void auto_loop();
+void wifi_connect();
+bool testWifi(void);
+void setupAP(void);
+void createWebServer();
 
 Ticker timer;
 Ticker looptimer;
@@ -542,7 +546,7 @@ char wifiwebpage[] PROGMEM = R"=====(
         .form-group {
             margin-bottom: 15px;
         }
-        input[type="text"] {
+        input[type="text"],input[type="password"] {
             width: calc(100% - 16px);
             padding: 8px;
             border: 1px solid #ddd;
@@ -568,6 +572,11 @@ char wifiwebpage[] PROGMEM = R"=====(
         label {
             display: block;
             margin-bottom: 5px;
+        }
+        #or{
+            margin-bottom: 15px;
+            color: #a8a7a7;
+            text-align: center;
         }
     </style>
 </head>
@@ -601,13 +610,14 @@ char wifiwebpage[] PROGMEM = R"=====(
             </div>
             <div class="form-group">
                 <label for="password">Password</label>
-                <input type="text" id="password" name="password" length=64 placeholder="********">
+                <input type="password" id="password" name="password" length=64 placeholder="********">
             </div>
+            <div id="or">-------   or  -------</div>
             <div class="form-group">
                 <label for="HostName">Host Name</label>
                 <input type="text" id="HostName" name="HostName" length=32 placeholder="growcontroller">
             </div>
-            <input type="submit" value="Submit" onclick="submit()">
+            <input type="submit" value="Change" onclick="submit()">
         </div>
     </div>
 </body>
@@ -653,6 +663,8 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length
         return;
       }
 
+      //write data to EEPROM
+
       int FAN_status = doc["fanControl"];
       int MISTMAKER_status = doc["mistMakerControl"];
       int LIGHT_status = doc["lightControl"];
@@ -688,14 +700,12 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length
 
       if (qsid.length() > 0 && qpass.length() > 0) {
         Serial.println("clearing eeprom");
-        for (int i = 10; i < 138; ++i) {
+        for (int i = 10; i < 106; ++i) {
           EEPROM.write(i, 0);
         }
         Serial.println(qsid);
         Serial.println("");
         Serial.println(qpass);
-        Serial.println("");
-        Serial.println(qhost);
         Serial.println("");
 
         Serial.println("writing eeprom ssid:");
@@ -712,8 +722,16 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length
           Serial.print("Wrote: ");
           Serial.println(qpass[i]);
         }
+        wifi_connect();
       }
       if ( qhost.length() > 0 ){
+        Serial.println("clearing eeprom");
+        for (int i = 106; i < 138; ++i) {
+          EEPROM.write(i, 0);
+        }
+        Serial.println(qhost);
+        Serial.println("");
+
         Serial.println("writing eeprom hostname:");
         for (int i = 0; i < qhost.length(); ++i)
         {
@@ -721,6 +739,7 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length
           Serial.print("Wrote: ");
           Serial.println(qhost[i]);
         }
+          wifi_connect();
       }
 
       Serial.println("write to EEPROM");
@@ -742,25 +761,9 @@ void setup(void)
 
   dht.begin();
   EEPROM.begin(512); //Initialasing EEPROM
-  
+
   // Connect to Wi-Fi
-  WiFi.begin(ssid, password);
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(1000);
-    Serial.println("Connecting to WiFi..");
-  }
-
-  // Print ESP Local IP Address
-  Serial.println(WiFi.localIP());
-
-  // Initialize mDNS
-  if (!MDNS.begin("esp")) { // hostname
-    Serial.println("Error starting mDNS");
-    return;
-  }
-  Serial.println("mDNS started");
-
-  configTime(gmtOffset_sec, daylightOffset_sec, ntpServer);
+  wifi_connect();
 
   server.on("/", [](AsyncWebServerRequest * request)
   { 
@@ -772,11 +775,12 @@ void setup(void)
     request->send_P(200, "text/html", wifiwebpage);
   });
 
+  // createWebServer();
   server.onNotFound(notFound);
-
   server.begin();  // start webserver
   websockets.begin();
   websockets.onEvent(webSocketEvent);
+
   timer.attach(2,send_sensor);
   looptimer.attach(1,auto_loop);
 
@@ -788,6 +792,7 @@ void loop(void)
  websockets.loop();
 }
 
+// send all data to web
 void send_sensor()
 {
   // Read humidity
@@ -855,6 +860,7 @@ void send_sensor()
   websockets.broadcastTXT(JSON_Data);
 }
 
+// read EEPROM and perform actions related to that data
 void auto_loop(){
   // Read EEProm for loard selcted state and values
   int fan_selected = EEPROM.read(0);
@@ -909,4 +915,125 @@ void auto_loop(){
       digitalWrite(LIGHT,0);
     }
   }
+}
+
+void wifi_connect(){
+
+  Serial.println("Disconnecting previously connected WiFi");
+  WiFi.disconnect();
+
+  // Read eeprom for ssid, password and host name
+  Serial.println("Reading EEPROM wifi data");
+
+  String esid;
+  for (int i = 10; i < 42; ++i)
+  {
+    esid += char(EEPROM.read(i));
+  }
+  Serial.println();
+  Serial.print("SSID: ");
+  Serial.println(esid);
+
+  String epass = "";
+  for (int i = 42; i < 106; ++i)
+  {
+    epass += char(EEPROM.read(i));
+  }
+  Serial.print("PASS: ");
+  Serial.println(epass);
+  
+  String ehost = "";
+  for (int i = 106; i < 138; ++i)
+  {
+    ehost += char(EEPROM.read(i));
+  }
+  Serial.print("HOST: ");
+  Serial.println(ehost);
+
+  Serial.println("Reading EEPROM pass");
+
+  //connect to wifi
+  WiFi.begin(esid.c_str(), epass.c_str());
+
+  //if wifi didn't connect open AP
+  if (testWifi())
+  {
+    Serial.println("Succesfully Connected!!!");
+    // Print ESP Local IP Address
+    Serial.println(WiFi.localIP());
+
+    configTime(gmtOffset_sec, daylightOffset_sec, ntpServer);
+
+    // Initialize mDNS
+    if (!MDNS.begin(ehost.c_str())) { // hostname
+      Serial.println("Error starting mDNS");
+      return;
+    }
+    Serial.println("mDNS started");
+    return;
+  }
+  else
+  {
+    Serial.println("Turning the HotSpot On");
+    setupAP(); // Setup HotSpot
+    // Print ESP soft IP Address
+    Serial.println(WiFi.softAPIP());
+
+    // Initialize mDNS
+    if (!MDNS.begin("growcontroller")) { // hostname on AP mode
+      Serial.println("Error starting mDNS");
+      return;
+    }
+    Serial.println("mDNS started");
+  }
+}
+
+bool testWifi(void)
+{
+  int c = 0;
+  Serial.println("Waiting for Wifi to connect");
+  while ( c < 20 ) {
+    if (WiFi.status() == WL_CONNECTED)
+    {
+      return true;
+    }
+    delay(500);
+    Serial.print("*");
+    c++;
+  }
+  Serial.println("");
+  Serial.println("Connect timed out, opening AP");
+  return false;
+}
+
+void setupAP(void)
+{
+  WiFi.mode(WIFI_STA);
+  WiFi.disconnect();
+  delay(100);
+
+  int n = WiFi.scanNetworks();
+  Serial.println("scan done");
+  if (n == 0)
+    Serial.println("no networks found");
+  else
+  {
+    Serial.print(n);
+    Serial.println(" networks found");
+    for (int i = 0; i < n; ++i)
+    {
+      // Print SSID and RSSI for each network found
+      Serial.print(i + 1);
+      Serial.print(": ");
+      Serial.print(WiFi.SSID(i));
+      Serial.print(" (");
+      Serial.print(WiFi.RSSI(i));
+      Serial.print(")");
+      delay(10);
+    }
+  }
+  delay(100);
+
+  WiFi.softAP("growcontroller", "KLJ_Creations");
+  Serial.println("opensoftAP");
 }
