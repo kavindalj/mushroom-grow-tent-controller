@@ -662,31 +662,145 @@ char wifiwebpage[] PROGMEM = R"=====(
             display: block;
             margin-bottom: 5px;
         }
-        #or{
+        #or {
             margin-bottom: 15px;
             color: #a8a7a7;
             text-align: center;
+        }
+        /* Modal Styles */
+        .modal {
+            display: none; 
+            position: fixed; 
+            z-index: 1; 
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto; 
+            background-color: rgb(0,0,0); 
+            background-color: rgba(0,0,0,0.4); 
+            padding-top: 60px;
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: 5% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 500px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        .modal-button {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+        }
+        .modal-button button {
+            margin: 0 10px;
         }
     </style>
 </head>
 <script>
     var connection = new WebSocket('ws://'+location.hostname+':81/');
-
-    var HOSTNAME = growcontroller
+    
+    var SSID, PASSWD, HOSTNAME;
 
     function submit() {
         SSID = document.getElementById("ssid").value;
         PASSWD = document.getElementById("password").value;
         HOSTNAME = document.getElementById("HostName").value;
-        send_data();
+
+        if (SSID && PASSWD && HOSTNAME) {
+            showConfirmationModal(true, true);
+        } else if (SSID && PASSWD) {
+            showConfirmationModal(true, false);
+        } else if (HOSTNAME) {
+            showConfirmationModal(false, true);
+        } else {
+            // Handle the case where no input or incomplete input is provided
+            alert('Please fill in the required fields.');
+        }
     }
-    function send_data() {
+
+    function showConfirmationModal(showSSID, showHostname) {
+        var modal = document.getElementById("confirmationModal");
+        var ssidField = document.getElementById("modalSSID");
+        var hostnameField = document.getElementById("modalHostname");
+
+        var ssidf = '';
+
+        if (showSSID) {
+            ssidf += `<strong>WiFI SSID:</strong> ${SSID}`;
+        } 
+
+        if (showHostname) {
+            hostnameField.textContent = HOSTNAME;
+        } else {
+            hostnameField.textContent = 'growcontroller';
+        }
+
+        ssidField.innerHTML = ssidf;
+
+        modal.style.display = "block";
+
+        document.getElementById("confirmButton").onclick = function() {
+            send_data(showSSID, showHostname);
+            showSuccessModal(showSSID, showHostname);
+            modal.style.display = "none";
+        };
+        document.getElementById("cancelButton").onclick = function() {
+            modal.style.display = "none";
+        };
+        document.querySelector(".close").onclick = function() {
+            modal.style.display = "none";
+        };
+    }
+
+    function showSuccessModal(showSSID, showHostname) {
+        var successModal = document.getElementById("successModal");
+        var successMessage = document.getElementById("successMessage");
+
+        var message = '';
+
+        if (showSSID) {
+            message += `Please connect to <strong>${SSID}</strong> wifi <br>&<br>`;
+        }
+
+        if (showHostname) {
+            message += `Visit <strong>${HOSTNAME}.local</strong> to load the application.`;
+        } else {
+            message += `Visit <strong>growcontroller.local</strong> to load the application.`;
+        }
+
+        successMessage.innerHTML = message;
+        successModal.style.display = "block";
+
+        setTimeout(function() {
+            successModal.style.display = "none";
+        }, 5000); // Hide the success modal after 5 seconds
+    }
+
+    function send_data(showSSID, showHostname) {
         var wifi_data = JSON.stringify({
             ssid: SSID,
             password: PASSWD,
-            hostname: HOSTNAME
+            hostname: showHostname ? HOSTNAME : 'growcontroller'
         });
         connection.send(wifi_data);
+        console.log(wifi_data);
     }
 </script>
 <body>
@@ -707,6 +821,28 @@ char wifiwebpage[] PROGMEM = R"=====(
                 <input type="text" id="HostName" name="HostName" length=32 placeholder="growcontroller">
             </div>
             <input type="submit" value="Change" onclick="submit()">
+        </div>
+    </div>
+
+    <!-- The Confirmation Modal -->
+    <div id="confirmationModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Confirm Your Details</h2>
+            <p id="modalSSID"></p>
+            <p><strong>Host Name:</strong> <span id="modalHostname"></span></p>
+            <div class="modal-button">
+                <button id="confirmButton">Confirm</button>
+                <button id="cancelButton">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- The Success Modal -->
+    <div id="successModal" class="modal">
+        <div class="modal-content">
+            <h2>Success!</h2>
+            <p id="successMessage"></p>
         </div>
     </div>
 </body>
