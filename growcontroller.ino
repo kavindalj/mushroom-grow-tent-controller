@@ -40,477 +40,566 @@ char webpage[] PROGMEM = R"=====(
 
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Controll Dashboard</title>
-    <script src="https://kit.fontawesome.com/685df27141.js" crossorigin="anonymous"></script>
-    <style>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Control Dashboard</title>
+  <script src="https://kit.fontawesome.com/685df27141.js" crossorigin="anonymous"></script>
+  <style>
+    body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 100%;
+      margin-top: 50px;
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f4;
+      color: #333;
+    }
+
+    h1 {
+      font-size: 2.5em;
+      margin-bottom: 10px;
+      color: #555;
+    }
+
+    h6 {
+      font-size: 1em;
+      color: #777;
+      margin: 0px;
+    }
+
+    .mainContainor {
+      width: 90%;
+      max-width: 1200px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background-color: #fff;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      padding: 20px;
+      border-radius: 8px;
+      margin-top: 20px;
+    }
+
+    .statusContainor {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-bottom: 30px;
+    }
+
+    .statusContainor .componentContainor {
+      margin: 15px;
+      text-align: center;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 10px;
+      background-color: #fafafa;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+
+    .statusContainor .componentContainor i {
+      font-size: 2em;
+      color: #007bff;
+      width: 100px;
+    }
+
+    .statusContainor .status {
+      font-size: 1.5em;
+      margin: 10px 0;
+    }
+
+    .statusContainor .statusName {
+      font-size: 1em;
+      color: #666;
+    }
+
+    .controlContainor {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    .controlContainor .componentContainor {
+      display: flex;
+      flex-direction: column;
+      margin-bottom: 20px;
+      background-color: #fff;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 15px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+
+    .controlContainor .componentContainor .label {
+      display: flex;
+      align-items: center;
+      font-size: 1.2em;
+      margin-bottom: 10px;
+    }
+
+    .controlContainor .componentContainor .label i {
+      margin-right: 10px;
+      color: #007bff;
+    }
+
+    .controlContainor .componentContainor .rightContainor {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .controlContainor .componentContainor .statusChange {
+      display: flex;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+
+    .controlContainor .componentContainor .statusChange input {
+      margin: 0 5px;
+    }
+
+    .controlContainor .componentContainor .inputContainor {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .controlContainor .componentContainor .inputContainor input {
+      margin: 5px 0;
+      padding: 8px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      width: 200px;
+    }
+
+    .controlContainor .componentContainor button {
+      padding: 8px 12px;
+      border: none;
+      border-radius: 4px;
+      background-color: #007bff;
+      color: #fff;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    .controlContainor .componentContainor button:hover {
+      background-color: #0056b3;
+    }
+
+    @media (max-width: 480px) {
       body {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        width: 100%;
-        margin-top: 80px;
+        margin-top: 20px;
       }
-      .mainContainor {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        margin-top: 50px;
-      }
-      h6 {
-        margin: 0px;
-        padding: 0px;
-      }
+
       h1 {
-        margin-bottom: 0px;
+        font-size: 1.8em;
       }
+
       .statusContainor {
-        display: flex;
-        align-items: center;
-        margin-bottom: 50px;
+        flex-direction: row;
       }
+
       .statusContainor .componentContainor {
-        margin: 20px;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
+        width: 25%;
+        margin: 5px;
       }
-      .controlContainor {
-        display: flex;
-        flex-direction: column;
-        align-items: flex-start;
-      }
+
       .controlContainor .componentContainor {
-        display: flex;
-        justify-content: flex-start;
-        align-items: center;
-        margin-bottom: 35px;
+        padding: 10px;
       }
-      .controlContainor .componentContainor i {
-        margin-right: 20px;
-        color: #000000;
-      }
+
       .label {
-        display: flex;
-        align-items: center;
-        width: 200px;
+        font-size: 1em;
       }
-      .statusChange {
-        display: flex;
-        align-items: center;
-        margin-bottom: 10px;
-      }
-      .statusChange input {
-        margin-right: 10px;
-        margin-left: 5px;
-      }
-      .inputContainor {
-        display: flex;
-        align-items: center;
-        margin-bottom: 10px;
-      }
+
       .inputContainor input {
-        margin-right: 10px;
-        margin-left: 5px;
-      }
-      button {
-        margin-left: 10px;
-      }
-      .statusChange input{
-        margin-right: 20px;
-      }
-      @media (max-width: 480px) {
-        body {
-          margin-top: 20px;
-        }
-        h1 {
-          font-size: 1.5em;
-        }
-        .statusContainor .componentContainor {
-          width: 65px;
-          margin: 5px;
-        }
-        .statusContainor {
-          margin-bottom: 0px;
-        }
-        .controlContainor{
-          margin-left: 20px;
-          margin-right: 20px;
-          margin-top: 0px;
-        }
-        .controlContainor .componentContainor{
-          flex-direction: column;
-        }
-        .label {
-          width: 150px;
-        }
-        .inputContainor {
-          display: none;
-          flex-direction: column;
-          align-items: flex-start;
-          margin-left: 20px;
-        }
-        .inputContainor input {
-          margin-top: 5px;
-          margin-bottom: 5px;
-          margin-left: 0px;
-        }
-        button {
-          margin-left: 0px;
-          margin-top: 10px;
-        }
-        .statusName{
-          display: none;
-        }
-      }
-    </style>
-  </head>
-
-  <script>
-
-    var connection = new WebSocket('ws://'+location.hostname+':81/');
-
-    var fanControlStatus = 0;   // store selected state from web
-    var mistMakerControlStatus = 0;
-    var lightControlStatus = 0;
-    
-    var temp_data = 0;   // store read data from sensor
-    var hum_data = 0;
-    var fan_data = 0;   // store pin read state ==> on or off now
-    var mistMaker_data = 0;
-    var light_data = 0;
-    
-    var fanSelect_data = 0;   // store read state in EEPROM
-    var mistMakerSelect_data = 0;
-    var lightSelect_data = 0;
-
-    var lowTempLev = 0;   // store input data
-    var highTempLev = 0;
-    var lowHumLev = 0;
-    var highHumLev = 0;
-    var lightOnTime = 0;
-    var lightOffTime = 0;
-
-    connection.onmessage = function(event){
-
-      var full_data = event.data;
-      console.log(full_data);
-      var data = JSON.parse(full_data);
-
-      temp_data = data.temp;
-      hum_data = data.hum;
-      fan_data = data.fan;
-      mistMaker_data = data.mist;
-      light_data = data.light;
-
-      fanSelect_data = data.fanSelect;
-      mistMakerSelect_data = data.mistMakerSelect;
-      lightSelect_data = data.lightSelect;
-
-      lowTempLev = data.lowTemp_level;
-      highTempLev = data.highTemp_level;
-      lowHumLev = data.lowHum_level;
-      highHumLev = data.highHum_level;
-      lightOnTime = data.lightOn_time;
-      lightOffTime = data.lightOff_time;
-
-      var fanSt;
-      var mistSt;
-      var lightSt;
-
-      if (fan_data == 0){   // change 1 ==> ON & 0 ==> OFF
-        fanSt = "off";
-      }
-      if (fan_data == 1){
-        fanSt = "on";
-      }
-      if (mistMaker_data == 0){
-        mistSt = "off";
-      }
-      if (mistMaker_data == 1){
-        mistSt = "on";
-      }
-      if (light_data == 0){
-        lightSt = "off";
-      }
-      if (light_data == 1){
-        lightSt = "on";
+        width: 100%;
       }
 
-      // for auto check check boxes with saved state in EEPROM
-      switch(fanSelect_data) {
-        case 0:
-          document.getElementById('fanOff').checked = true;
-          document.getElementById('fanInput').style.display = 'none';
-          break;
-        case 1:
-          document.getElementById('fanOn').checked = true;
-          document.getElementById('fanInput').style.display = 'none';
-          break;
-        case 2:
-          document.getElementById('fanAuto').checked = true;
-          document.getElementById('fanInput').style.display = 'flex';
-          break;
-      }
-      switch(mistMakerSelect_data) {
-        case 0:
-          document.getElementById('mistMakerOff').checked = true;
-          document.getElementById('mistMakerInput').style.display = 'none';
-          break;
-        case 1:
-          document.getElementById('mistMakerOn').checked = true;
-          document.getElementById('mistMakerInput').style.display = 'none';
-          break;
-        case 2:
-          document.getElementById('mistMakerAuto').checked = true;
-          document.getElementById('mistMakerInput').style.display = 'flex';
-          break;
-      }
-      switch(lightSelect_data) {
-        case 0:
-          document.getElementById('lightOff').checked = true;
-          document.getElementById('lightInput').style.display = 'none';
-          break;
-        case 1:
-          document.getElementById('lightOn').checked = true;
-          document.getElementById('lightInput').style.display = 'none';
-          break;
-        case 2:
-          document.getElementById('lightAuto').checked = true;
-          document.getElementById('lightInput').style.display = 'flex';
-          break;
+      .controlContainor .componentContainor button {
+        width: 100%;
+        margin-top: 10px;
       }
 
-      // update status show in web page
-      document.getElementById("temp_value").innerHTML = temp_data;
-      document.getElementById("hum_value").innerHTML = hum_data;
-      document.getElementById("fan_state").innerHTML = fanSt;
-      document.getElementById("mistMaker_state").innerHTML = mistSt;
-      document.getElementById("light_state").innerHTML = lightSt;
+      .statusName {
+        display: none;
+      }
+    }
+  </style>
+</head>
 
-      // change placeholder text
-      document.getElementById('LTL').placeholder = lowTempLev;
-      document.getElementById('HTL').placeholder = highTempLev;
-      document.getElementById('LHL').placeholder = lowHumLev;
-      document.getElementById('HHL').placeholder = highHumLev;
-      document.getElementById('LONT').placeholder = lightOnTime;
-      document.getElementById('LOFFT').placeholder = lightOffTime;
+<script>
+
+  var connection = new WebSocket('ws://'+location.hostname+':81/');
+
+  var fanControlStatus = 0;   // store selected state from web
+  var mistMakerControlStatus = 0;
+  var lightControlStatus = 0;
+  
+  var temp_data = 0;   // store read data from sensor
+  var hum_data = 0;
+  var fan_data = 0;   // store pin read state ==> on or off now
+  var mistMaker_data = 0;
+  var light_data = 0;
+  
+  var fanSelect_data = 0;   // store read state in EEPROM
+  var mistMakerSelect_data = 0;
+  var lightSelect_data = 0;
+
+  var lowTempLev = 0;   // store input data
+  var highTempLev = 0;
+  var lowHumLev = 0;
+  var highHumLev = 0;
+  var lightOnTime = 0;
+  var lightOffTime = 0;
+
+  connection.onmessage = function(event){
+
+    var full_data = event.data;
+    console.log(full_data);
+    var data = JSON.parse(full_data);
+
+    temp_data = data.temp;
+    hum_data = data.hum;
+    fan_data = data.fan;
+    mistMaker_data = data.mist;
+    light_data = data.light;
+
+    fanSelect_data = data.fanSelect;
+    mistMakerSelect_data = data.mistMakerSelect;
+    lightSelect_data = data.lightSelect;
+
+    lowTempLev = data.lowTemp_level;
+    highTempLev = data.highTemp_level;
+    lowHumLev = data.lowHum_level;
+    highHumLev = data.highHum_level;
+    lightOnTime = data.lightOn_time;
+    lightOffTime = data.lightOff_time;
+
+    var fanSt;
+    var mistSt;
+    var lightSt;
+
+    if (fan_data == 0){   // change 1 ==> ON & 0 ==> OFF
+      fanSt = "off";
+    }
+    if (fan_data == 1){
+      fanSt = "on";
+    }
+    if (mistMaker_data == 0){
+      mistSt = "off";
+    }
+    if (mistMaker_data == 1){
+      mistSt = "on";
+    }
+    if (light_data == 0){
+      lightSt = "off";
+    }
+    if (light_data == 1){
+      lightSt = "on";
     }
 
-    // click functions
-    function fan_on()
-    {
-      fanControlStatus = 1; 
-      console.log("FAN is ON");
-      document.getElementById('fanInput').style.display = 'none';
-      send_data();
+    // for auto check check boxes with saved state in EEPROM
+    switch(fanSelect_data) {
+      case 0:
+        document.getElementById('fanOff').checked = true;
+        document.getElementById('fanInput').style.display = 'none';
+        break;
+      case 1:
+        document.getElementById('fanOn').checked = true;
+        document.getElementById('fanInput').style.display = 'none';
+        break;
+      case 2:
+        document.getElementById('fanAuto').checked = true;
+        document.getElementById('fanInput').style.display = 'flex';
+        break;
+    }
+    switch(mistMakerSelect_data) {
+      case 0:
+        document.getElementById('mistMakerOff').checked = true;
+        document.getElementById('mistMakerInput').style.display = 'none';
+        break;
+      case 1:
+        document.getElementById('mistMakerOn').checked = true;
+        document.getElementById('mistMakerInput').style.display = 'none';
+        break;
+      case 2:
+        document.getElementById('mistMakerAuto').checked = true;
+        document.getElementById('mistMakerInput').style.display = 'flex';
+        break;
+    }
+    switch(lightSelect_data) {
+      case 0:
+        document.getElementById('lightOff').checked = true;
+        document.getElementById('lightInput').style.display = 'none';
+        break;
+      case 1:
+        document.getElementById('lightOn').checked = true;
+        document.getElementById('lightInput').style.display = 'none';
+        break;
+      case 2:
+        document.getElementById('lightAuto').checked = true;
+        document.getElementById('lightInput').style.display = 'flex';
+        break;
     }
 
-    function fan_off()
-    {
-      fanControlStatus = 0;
-      console.log("FAN is OFF");
-      document.getElementById('fanInput').style.display = 'none';
-      send_data();
+    // update status show in web page
+    document.getElementById("temp_value").innerHTML = temp_data;
+    document.getElementById("hum_value").innerHTML = hum_data;
+    document.getElementById("fan_state").innerHTML = fanSt;
+    document.getElementById("mistMaker_state").innerHTML = mistSt;
+    document.getElementById("light_state").innerHTML = lightSt;
+
+    // change placeholder text
+    document.getElementById('LTL').placeholder = lowTempLev;
+    document.getElementById('HTL').placeholder = highTempLev;
+    document.getElementById('LHL').placeholder = lowHumLev;
+    document.getElementById('HHL').placeholder = highHumLev;
+    document.getElementById('LONT').placeholder = lightOnTime;
+    document.getElementById('LOFFT').placeholder = lightOffTime;
+  }
+
+  // click functions
+  function fan_on()
+  {
+    fanControlStatus = 1; 
+    console.log("FAN is ON");
+    document.getElementById('fanInput').style.display = 'none';
+    send_data();
+  }
+
+  function fan_off()
+  {
+    fanControlStatus = 0;
+    console.log("FAN is OFF");
+    document.getElementById('fanInput').style.display = 'none';
+    send_data();
+  }
+
+  function fan_auto()
+  {
+    fanControlStatus = 2;
+    console.log("FAN auto");
+    document.getElementById('fanInput').style.display = 'flex';
+    send_data();
+  }
+
+  function mist_on()
+  {
+    mistMakerControlStatus = 1; 
+    console.log("MIST MAKER is ON");
+    document.getElementById('mistMakerInput').style.display = 'none';
+    send_data();
+  }
+
+  function mist_off()
+  {
+    mistMakerControlStatus = 0;
+    console.log("MIST MAKER is OFF");
+    document.getElementById('mistMakerInput').style.display = 'none';
+    send_data();
+  }
+
+  function mist_auto()
+  {
+    mistMakerControlStatus = 2;
+    console.log("MISTMAKER auto");
+    document.getElementById('mistMakerInput').style.display = 'flex';
+    send_data();
+  }
+
+  function light_on()
+  {
+    lightControlStatus = 1; 
+    console.log("LIGHT is ON");
+    document.getElementById('lightInput').style.display = 'none';
+    send_data();
+  }
+
+  function light_off()
+  {
+    lightControlStatus = 0;
+    console.log("LIGHT is OFF");
+    document.getElementById('lightInput').style.display = 'none';
+    send_data();
+  }
+
+  function light_auto()
+  {
+    lightControlStatus = 2;
+    console.log("LIGHT auto");
+    document.getElementById('lightInput').style.display = 'flex';
+    send_data();
+  }
+
+  // get text user input
+  function submit(){
+    // get values only input isnt empty
+    if(document.getElementById("LTL").value){
+      lowTempLev = document.getElementById("LTL").value;
+    }
+    if(document.getElementById("HTL").value){
+      highTempLev = document.getElementById("HTL").value;
+    }
+    if(document.getElementById("LHL").value){
+      lowHumLev = document.getElementById("LHL").value;
+    }
+    if(document.getElementById("HHL").value){
+      highHumLev = document.getElementById("HHL").value;
+    }
+    if(document.getElementById("LONT").value){
+      lightOnTime = document.getElementById("LONT").value;
+    }
+    if(document.getElementById("LOFFT").value){
+      lightOffTime = document.getElementById("LOFFT").value;
     }
 
-    function fan_auto()
-    {
-      fanControlStatus = 2;
-      console.log("FAN auto");
-      document.getElementById('fanInput').style.display = 'flex';
-      send_data();
-    }
+    console.log(lowTempLev,highTempLev,lowHumLev,highHumLev,lightOnTime,lightOffTime);
+    send_data();
+  }
 
-    function mist_on()
-    {
-      mistMakerControlStatus = 1; 
-      console.log("MIST MAKER is ON");
-      document.getElementById('mistMakerInput').style.display = 'none';
-      send_data();
-    }
+  function send_data()
+  {
+    var full_data = '{"fanControl" :'+fanControlStatus+',"mistMakerControl":'+mistMakerControlStatus+',"lightControl":'+lightControlStatus+',"ltl":'+lowTempLev+',"htl":'+highTempLev+',"lhl":'+lowHumLev+',"hhl":'+highHumLev+',"lont":'+lightOnTime+',"lofft":'+lightOffTime+'}';
+    console.log(full_data);
+    connection.send(full_data);
+  }
+</script>
 
-    function mist_off()
-    {
-      mistMakerControlStatus = 0;
-      console.log("MIST MAKER is OFF");
-      document.getElementById('mistMakerInput').style.display = 'none';
-      send_data();
-    }
-
-    function mist_auto()
-    {
-      mistMakerControlStatus = 2;
-      console.log("MISTMAKER auto");
-      document.getElementById('mistMakerInput').style.display = 'flex';
-      send_data();
-    }
-
-    function light_on()
-    {
-      lightControlStatus = 1; 
-      console.log("LIGHT is ON");
-      document.getElementById('lightInput').style.display = 'none';
-      send_data();
-    }
-
-    function light_off()
-    {
-      lightControlStatus = 0;
-      console.log("LIGHT is OFF");
-      document.getElementById('lightInput').style.display = 'none';
-      send_data();
-    }
-
-    function light_auto()
-    {
-      lightControlStatus = 2;
-      console.log("LIGHT auto");
-      document.getElementById('lightInput').style.display = 'flex';
-      send_data();
-    }
-
-    // get text user input
-    function submit(){
-      // get values only input isnt empty
-      if(document.getElementById("LTL").value){
-        lowTempLev = document.getElementById("LTL").value;
-      }
-      if(document.getElementById("HTL").value){
-        highTempLev = document.getElementById("HTL").value;
-      }
-      if(document.getElementById("LHL").value){
-        lowHumLev = document.getElementById("LHL").value;
-      }
-      if(document.getElementById("HHL").value){
-        highHumLev = document.getElementById("HHL").value;
-      }
-      if(document.getElementById("LONT").value){
-        lightOnTime = document.getElementById("LONT").value;
-      }
-      if(document.getElementById("LOFFT").value){
-        lightOffTime = document.getElementById("LOFFT").value;
-      }
-
-      console.log(lowTempLev,highTempLev,lowHumLev,highHumLev,lightOnTime,lightOffTime);
-      send_data();
-    }
-
-    function send_data()
-    {
-      var full_data = '{"fanControl" :'+fanControlStatus+',"mistMakerControl":'+mistMakerControlStatus+',"lightControl":'+lightControlStatus+',"ltl":'+lowTempLev+',"htl":'+highTempLev+',"lhl":'+lowHumLev+',"hhl":'+highHumLev+',"lont":'+lightOnTime+',"lofft":'+lightOffTime+'}';
-      console.log(full_data);
-      connection.send(full_data);
-    }
-  </script>
-
-  <body>
-    <h1>Controll Dashboard</h1>
-    <h6>created by Kavinda Lakshan Jayarathna</h6>
-    <div class="mainContainor">
-      <div class="statusContainor">
-        <div class="componentContainor">
-          <i class="fas fa-thermometer-half"></i>
-          <p class="status" id="temp_value">--</p>
-          <p class="statusName">Temparature</p>
-        </div>
-        <div class="componentContainor">
-          <i class="fas fa-tint"></i>
-          <p class="status" id="hum_value">--</p>
-          <p class="statusName">Humidity</p>
-        </div>
-        <div class="componentContainor">
-          <i class="fas fa-fan"></i>
-          <p class="status" id="fan_state">--</p>
-          <p class="statusName">Fan</p>
-        </div>
-        <div class="componentContainor">
-          <i class="fa-solid fa-shower"></i>
-          <p class="status" id="mistMaker_state">--</p>
-          <p class="statusName">Mist Maker</p>
-        </div>
-        <div class="componentContainor">
-          <i class="fa-solid fa-lightbulb"></i>
-          <p class="status" id="light_state">--</p>
-          <p class="statusName">Light</p>
-        </div>
+<body>
+  <h1>Control Dashboard</h1>
+  <h6>created by Kavinda Lakshan Jayarathna</h6>
+  <div class="mainContainor">
+    <div class="statusContainor">
+      <div class="componentContainor">
+        <i class="fas fa-thermometer-half"></i>
+        <p class="status" id="temp_value">--</p>
+        <p class="statusName">Temperature</p>
       </div>
-      <div class="controlContainor">
-        <div class="componentContainor">
-          <div class="label">
-            <i class="fas fa-fan"></i>
-            <p>Fan</p>
-          </div>
-          <div class="rightContainor">
-            <div class="statusChange">
+      <div class="componentContainor">
+        <i class="fas fa-tint"></i>
+        <p class="status" id="hum_value">--</p>
+        <p class="statusName">Humidity</p>
+      </div>
+      <div class="componentContainor">
+        <i class="fas fa-fan"></i>
+        <p class="status" id="fan_state">--</p>
+        <p class="statusName">Fan</p>
+      </div>
+      <div class="componentContainor">
+        <i class="fa-solid fa-shower"></i>
+        <p class="status" id="mistMaker_state">--</p>
+        <p class="statusName">Mist Maker</p>
+      </div>
+      <div class="componentContainor">
+        <i class="fa-solid fa-lightbulb"></i>
+        <p class="status" id="light_state">--</p>
+        <p class="statusName">Light</p>
+      </div>
+    </div>
+    <div class="controlContainor">
+      <div class="componentContainor">
+        <div class="label">
+          <i class="fas fa-fan"></i>
+          <p>Fan</p>
+        </div>
+        <div class="rightContainor">
+          <div class="statusChange">
+            <label>
               on
               <input type="radio" name="fan" id="fanOn" onclick="fan_on()">
+            </label>
+            <label>
               automatically
               <input type="radio" name="fan" id="fanAuto" onclick="fan_auto()">
+            </label>
+            <label>
               off
               <input type="radio" name="fan" id="fanOff" onclick="fan_off()">
-            </div>
-            <div class="inputContainor" id="fanInput">
-              Low temparature level
+            </label>
+          </div>
+          <div class="inputContainor" id="fanInput">
+            <label>
+              Low temperature level
               <input type="text" id="LTL">
-              High temparature level
+            </label>
+            <label>
+              High temperature level
               <input type="text" id="HTL">
-              <button onclick="submit()">Submit</button>
-            </div>
+            </label>
+            <button onclick="submit()">Submit</button>
           </div>
         </div>
-        <div class="componentContainor">
-          <div class="label">
-            <i class="fa-solid fa-shower"></i>
-            <p>Mist Maker</p>
-          </div>
-          <div class="rightContainor">
-            <div class="statusChange">
+      </div>
+      <div class="componentContainor">
+        <div class="label">
+          <i class="fa-solid fa-shower"></i>
+          <p>Mist Maker</p>
+        </div>
+        <div class="rightContainor">
+          <div class="statusChange">
+            <label>
               on
               <input type="radio" name="mistMaker" id="mistMakerOn" onclick="mist_on()">
+            </label>
+            <label>
               automatically
               <input type="radio" name="mistMaker" id="mistMakerAuto" onclick="mist_auto()">
+            </label>
+            <label>
               off
               <input type="radio" name="mistMaker" id="mistMakerOff" onclick="mist_off()">
-            </div>
-            <div class="inputContainor" id="mistMakerInput">
+            </label>
+          </div>
+          <div class="inputContainor" id="mistMakerInput">
+            <label>
               Low humidity level
               <input type="text" id="LHL">
+            </label>
+            <label>
               High humidity level
               <input type="text" id="HHL">
-              <button onclick="submit()">Submit</button>
-            </div>
+            </label>
+            <button onclick="submit()">Submit</button>
           </div>
         </div>
-        <div class="componentContainor">
-          <div class="label">
-            <i class="fa-solid fa-lightbulb"></i>
-            <p>Light</p>
-          </div>
-          <div class="rightContainor">
-            <div class="statusChange">
+      </div>
+      <div class="componentContainor">
+        <div class="label">
+          <i class="fa-solid fa-lightbulb"></i>
+          <p>Light</p>
+        </div>
+        <div class="rightContainor">
+          <div class="statusChange">
+            <label>
               on
               <input type="radio" name="light" id="lightOn" onclick="light_on()">
               automatically
               <input type="radio" name="light" id="lightAuto" onclick="light_auto()">
               off
               <input type="radio" name="light" id="lightOff" onclick="light_off()">
-            </div>
-            <div class="inputContainor" id="lightInput">
+            </label>
+          </div>
+          <div class="inputContainor" id="lightInput">
+            <label>
               Light on time
               <input type="text" id="LONT">
+            </label>
+            <label>
               Light off time
               <input type="text" id="LOFFT">
-              <button onclick="submit()">Submit</button>
-            </div>
+            </label>
+            <button onclick="submit()">Submit</button>
           </div>
         </div>
       </div>
-    </div>  
-  </body>
+    </div>
+  </div>
+</body>
 </html>
+
 
 
 )=====";
