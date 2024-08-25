@@ -15,6 +15,9 @@
 #define MISTMAKER 12
 #define LIGHT 14
 
+#define SENSORLIGHT 26  // sensor check light
+#define APLIGHT 25  // AP Mode light
+
 #define DHTTYPE    DHT11
 DHT dht(DHTPIN, DHTTYPE);
 
@@ -983,6 +986,8 @@ void setup(void)
   pinMode(MISTMAKER,OUTPUT);
   pinMode(FAN,OUTPUT);
   pinMode(LIGHT,OUTPUT);
+  pinMode(SENSORLIGHT,OUTPUT);
+  pinMode(APLIGHT,OUTPUT);
 
   dht.begin();
   EEPROM.begin(512); //Initialasing EEPROM
@@ -1043,10 +1048,13 @@ void send_sensor()
   int lightOff_time = EEPROM.read(8);
   
   if (isnan(h) || isnan(t) ) {
+    digitalWrite(SENSORLIGHT,1);
     Serial.println(F("Failed to read from DHT sensor!"));
     return;
+  }else{
+    digitalWrite(SENSORLIGHT,0);
   }
-    if (isnan(fan_state) || isnan(mistMaker_state) || isnan(light_state) ) {
+  if (isnan(fan_state) || isnan(mistMaker_state) || isnan(light_state) ) {
     Serial.println(F("Failed to read from pins!"));
     return;
   }
@@ -1184,6 +1192,7 @@ void wifi_connect(){
   if (testWifi())
   {
     Serial.println("Succesfully Connected!!!");
+    digitalWrite(APLIGHT,0);
     // Print ESP Local IP Address
     Serial.println(WiFi.localIP());
 
@@ -1260,5 +1269,6 @@ void setupAP(void)
   delay(100);
 
   WiFi.softAP("growcontroller", "KLJ_Creations");
+  digitalWrite(APLIGHT,1);
   Serial.println("opensoftAP");
 }
