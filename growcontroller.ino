@@ -225,10 +225,6 @@ char webpage[] PROGMEM = R"=====(
         width: 100%;
         margin-top: 10px;
       }
-
-      .statusName {
-        display: none;
-      }
     }
   </style>
 </head>
@@ -473,7 +469,7 @@ char webpage[] PROGMEM = R"=====(
 
 <body>
   <h1>Control Dashboard</h1>
-  <h6>created by Kavinda Lakshan Jayarathna</h6>
+  <h6>Product by Kavinda Lakshan Jayarathna</h6>
   <div class="mainContainor">
     <div class="statusContainor">
       <div class="componentContainor">
@@ -989,6 +985,10 @@ void setup(void)
   pinMode(SENSORLIGHT,OUTPUT);
   pinMode(APLIGHT,OUTPUT);
 
+  digitalWrite(MISTMAKER,1);
+  digitalWrite(FAN,1);
+  digitalWrite(LIGHT,1);
+
   dht.begin();
   EEPROM.begin(512); //Initialasing EEPROM
 
@@ -1031,9 +1031,9 @@ void send_sensor()
   float t = dht.readTemperature();
 
   // Read pins
-  int fan_state = digitalRead(FAN);
-  int mistMaker_state = digitalRead(MISTMAKER);
-  int light_state = digitalRead(LIGHT);
+  bool fan_state = digitalRead(FAN);
+  bool mistMaker_state = digitalRead(MISTMAKER);
+  bool light_state = digitalRead(LIGHT);
 
   // Read EEProm for loard selcted state and values
   int fan_selected = EEPROM.read(0);
@@ -1065,11 +1065,11 @@ void send_sensor()
          JSON_Data += ",\"hum\":";
          JSON_Data += h;
          JSON_Data += ",\"fan\":";
-         JSON_Data += fan_state;
+         JSON_Data += !fan_state;
          JSON_Data += ",\"mist\":";
-         JSON_Data += mistMaker_state;
+         JSON_Data += !mistMaker_state;
          JSON_Data += ",\"light\":";
-         JSON_Data += light_state;
+         JSON_Data += !light_state;
          JSON_Data += ",\"fanSelect\":";
          JSON_Data += fan_selected;
          JSON_Data += ",\"mistMakerSelect\":";
@@ -1101,35 +1101,35 @@ void auto_loop(){
   int light_selected = EEPROM.read(2);
 
   if (fan_selected != 2){
-    digitalWrite(FAN,fan_selected);
+    digitalWrite(FAN,!fan_selected);
   }else{
     int lowTemp_level = EEPROM.read(3);
     int highTemp_level = EEPROM.read(4);
     float t = dht.readTemperature();
     if ( lowTemp_level >= t ){
-      digitalWrite(FAN,0);
+      digitalWrite(FAN,1);
     }
     if ( highTemp_level <= t ){
-      digitalWrite(FAN,1);
+      digitalWrite(FAN,0);
     }
   }
 
   if (mistMaker_selected != 2){
-    digitalWrite(MISTMAKER,mistMaker_selected);
+    digitalWrite(MISTMAKER,!mistMaker_selected);
   }else{
     int lowHum_level = EEPROM.read(5);
     int highHum_level = EEPROM.read(6);
     float h = dht.readHumidity();
     if ( lowHum_level >= h ){
-      digitalWrite(MISTMAKER,1);
+      digitalWrite(MISTMAKER,0);
     }
     if ( highHum_level <= h ){
-      digitalWrite(MISTMAKER,0);
+      digitalWrite(MISTMAKER,1);
     }
   }
 
   if (light_selected != 2){
-    digitalWrite(LIGHT,light_selected);
+    digitalWrite(LIGHT,!light_selected);
   }else{
     struct tm timeinfo;
     if(!getLocalTime(&timeinfo)){
@@ -1143,9 +1143,9 @@ void auto_loop(){
     Serial.println(&timeinfo, "%A, %B %d %Y %H:%M:%S");
     int currentHour = timeinfo.tm_hour;
     if (lightOn_time <= currentHour && lightOff_time > currentHour){
-      digitalWrite(LIGHT,1);
-    }else{
       digitalWrite(LIGHT,0);
+    }else{
+      digitalWrite(LIGHT,1);
     }
   }
 }
