@@ -14,6 +14,7 @@
 #define FAN 13
 #define MISTMAKER 12
 #define LIGHT 14
+#define RESETBTN 18
 
 #define SENSORLIGHT 26  // sensor check light
 #define APLIGHT 25  // AP Mode light
@@ -24,6 +25,8 @@ DHT dht(DHTPIN, DHTTYPE);
 const char* ntpServer = "pool.ntp.org";
 const long  gmtOffset_sec = 16200;
 const int   daylightOffset_sec = 3600;
+
+int resetTimeCounter=0;
 
 // network credentials
 // const char* ssid = "SSID";
@@ -984,6 +987,7 @@ void setup(void)
   pinMode(LIGHT,OUTPUT);
   pinMode(SENSORLIGHT,OUTPUT);
   pinMode(APLIGHT,OUTPUT);
+  pinMode(RESETBTN,INPUT_PULLUP);
 
   digitalWrite(MISTMAKER,1);
   digitalWrite(FAN,1);
@@ -1148,6 +1152,43 @@ void auto_loop(){
       digitalWrite(LIGHT,1);
     }
   }
+
+  //reset button function
+  if (digitalRead(RESETBTN)==LOW){
+    ++resetTimeCounter;
+  }else{
+    resetTimeCounter=0;
+  }
+  Serial.println(resetTimeCounter);
+  if(resetTimeCounter==5){
+    // indicate reset
+    digitalWrite(APLIGHT,1);
+    delay(100);
+    digitalWrite(APLIGHT,0);
+    delay(100);
+    digitalWrite(APLIGHT,1);
+    delay(100);
+    digitalWrite(APLIGHT,0);
+    delay(100);
+    digitalWrite(APLIGHT,1);
+    delay(500);
+    digitalWrite(APLIGHT,0);
+
+    Serial.println("Disconnecting previously connected WiFi");
+    WiFi.disconnect();
+    Serial.println("Turning the HotSpot On");
+    setupAP(); // Setup HotSpot
+    // Print ESP soft IP Address
+    Serial.println(WiFi.softAPIP());
+
+    // Initialize mDNS
+    if (!MDNS.begin("growcontroller")) { // hostname on AP mode
+      Serial.println("Error starting mDNS");
+      return;
+    }
+    Serial.println("mDNS started");
+  }
+
 }
 
 void wifi_connect(){
@@ -1246,27 +1287,27 @@ void setupAP(void)
   WiFi.disconnect();
   delay(100);
 
-  int n = WiFi.scanNetworks();
-  Serial.println("scan done");
-  if (n == 0)
-    Serial.println("no networks found");
-  else
-  {
-    Serial.print(n);
-    Serial.println(" networks found");
-    for (int i = 0; i < n; ++i)
-    {
-      // Print SSID and RSSI for each network found
-      Serial.print(i + 1);
-      Serial.print(": ");
-      Serial.print(WiFi.SSID(i));
-      Serial.print(" (");
-      Serial.print(WiFi.RSSI(i));
-      Serial.print(")");
-      delay(10);
-    }
-  }
-  delay(100);
+  // int n = WiFi.scanNetworks();
+  // Serial.println("scan done");
+  // if (n == 0)
+  //   Serial.println("no networks found");
+  // else
+  // {
+  //   Serial.print(n);
+  //   Serial.println(" networks found");
+  //   for (int i = 0; i < n; ++i)
+  //   {
+  //     // Print SSID and RSSI for each network found
+  //     Serial.print(i + 1);
+  //     Serial.print(": ");
+  //     Serial.print(WiFi.SSID(i));
+  //     Serial.print(" (");
+  //     Serial.print(WiFi.RSSI(i));
+  //     Serial.print(")");
+  //     delay(10);
+  //   }
+  // }
+  // delay(100);
 
   WiFi.softAP("growcontroller", "KLJ_Creations");
   digitalWrite(APLIGHT,1);
