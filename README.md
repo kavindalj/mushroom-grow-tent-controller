@@ -1,6 +1,8 @@
 # Mushroom Grow Tent Controller
 
    ![Control Dashboard](./images/Control_Dashboard.jpg)
+   
+   For more images, visit the [images folder](./images).
 
 The **Mushroom Grow Tent Controller** is an IoT device designed to automate and control the environment inside a mushroom grow tent. It provides full control of temperature, humidity, and lighting, making it ideal for mushroom cultivation.
 
